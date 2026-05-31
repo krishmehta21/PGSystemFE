@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, AlertCircle, AlertTriangle, Building2, BedDouble, Users, Wrench, Settings, UserPlus } from 'lucide-react';
+import { ArrowRight, AlertCircle, AlertTriangle, Building2, BedDouble, Users, Wrench, UserPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getDashboard, getMyPG, getTenants, getMaintenanceRequests } from '../api/endpoints';
 import type { DashboardStats, Tenant, MaintenanceRequest } from '../api/types';
