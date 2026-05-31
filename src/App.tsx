@@ -8,6 +8,7 @@ import { startKeepAlive, stopKeepAlive } from './utils/keepAlive';
 
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard'));
+const AdminRevenue = React.lazy(() => import('./pages/AdminRevenue'));
 const Rooms = React.lazy(() => import('./pages/Rooms'));
 const Tenants = React.lazy(() => import('./pages/Tenants'));
 const TenantDetail = React.lazy(() => import('./pages/TenantDetail'));
@@ -106,6 +107,7 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={<AdminDashboard />} />
+            <Route path="revenue" element={<AdminRevenue />} />
           </Route>
 
           <Route path="/suspended" element={

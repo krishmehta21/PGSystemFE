@@ -84,8 +84,19 @@ export const createPG = (data: PGCreate) => client.post<PG>("/api/v1/pgs", data)
 
 export const updatePG = (id: string, data: PGUpdate) => client.put<PG>(`/api/v1/pgs/${id}`, data);
 
-export const updatePGSubscription = (id: string, data: { is_active: boolean, subscription_status: "active" | "warning" | "suspended" }) => 
-  client.patch<PG>(`/api/v1/pgs/${id}/subscription`, data);
+export const updatePGSubscription = (id: string, data: { 
+  is_active?: boolean, 
+  subscription_status?: "active" | "warning" | "suspended",
+  monthly_price?: number,
+  subscription_start?: string,
+  subscription_end?: string,
+  subscription_notes?: string
+}) => client.patch<PG>(`/api/v1/pgs/${id}/subscription`, data);
+
+import type { AdminRevenueResponse } from "./types";
+export const getAdminRevenue = () => client.get<AdminRevenueResponse>("/api/v1/pgs/admin/revenue");
+
+export const getDashboardForAdmin = (pgId: string) => client.get<DashboardStats>(`/api/v1/dashboard?pg_id=${pgId}`);
 
 // ── Documents ─────────────────────────────────────────────────────────────
 export interface TenantDocument {

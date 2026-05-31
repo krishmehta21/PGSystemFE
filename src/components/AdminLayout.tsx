@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, LogOut, Menu, X, LineChart } from 'lucide-react';
 import { getMe } from '../api/endpoints';
 
 const AdminLayout: React.FC = () => {
@@ -108,7 +108,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ userEmail, handleSignOu
     {/* Nav Links */}
     <nav className="flex-1 py-6 px-3 space-y-1">
       <NavItem to="/admin" icon={<LayoutDashboard size={20} />} label="Workspaces" />
-      {/* Add more admin routes here if needed */}
+      <NavItem to="/admin/revenue" icon={<LineChart size={20} />} label="Revenue" />
     </nav>
 
     {/* Bottom: User & Logout */}

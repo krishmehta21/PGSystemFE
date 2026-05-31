@@ -7,6 +7,27 @@ export interface PG {
   created_at: string;
   is_active?: boolean;
   subscription_status?: 'active' | 'warning' | 'suspended';
+  monthly_price?: number;
+  subscription_start?: string;
+  subscription_end?: string;
+  subscription_notes?: string;
+}
+
+export interface AdminRevenuePG {
+  pg_name: string;
+  monthly_price: number;
+  subscription_status: string;
+  subscription_start: string | null;
+  subscription_end: string | null;
+  is_active: boolean;
+}
+
+export interface AdminRevenueResponse {
+  total_monthly_revenue: number;
+  active_pg_count: number;
+  suspended_pg_count: number;
+  warning_pg_count: number;
+  pgs: AdminRevenuePG[];
 }
 
 export interface User {
