@@ -179,11 +179,28 @@ const Dashboard: React.FC = () => {
 
       <hr className="border-t border-main-border mb-8" />
 
+      <h2 className="text-black/60 text-[11px] font-semibold tracking-widest uppercase mb-3">QUICK ADD</h2>
+      <button 
+        onClick={() => navigate('/tenants?action=add')}
+        className="w-full bg-[#0F0F0F] rounded-2xl border-l-4 border-accent px-5 py-4 flex items-center justify-between text-left active:scale-95 transition-all duration-150 shadow-sm mb-8"
+      >
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center text-accent flex-shrink-0">
+            <UserPlus size={18} />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-white leading-tight">Add New Tenant</h3>
+            <p className="text-xs text-gray-400 font-medium mt-0.5">Find a room and assign a bed</p>
+          </div>
+        </div>
+        <ArrowRight size={20} className="text-accent flex-shrink-0 ml-3" />
+      </button>
+
       <h2 className="font-serif text-[18px] text-main-text mb-4">Quick Actions</h2>
-      <div className="grid grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-4 gap-4">
         <button 
           onClick={() => navigate('/rooms')}
-          className="card aspect-square p-2 sm:p-3 flex flex-col items-center justify-center text-center hover:border-black/15 hover:shadow-sm active:scale-95 transition-all group tap-target"
+          className="card aspect-square p-3 flex flex-col items-center justify-center text-center hover:border-black/15 hover:shadow-sm active:scale-95 transition-all group tap-target"
         >
           <div className="w-10 h-10 rounded-full bg-main-bg flex items-center justify-center text-accent mb-2 group-hover:scale-110 transition-transform">
             <BedDouble size={20} />
@@ -192,7 +209,7 @@ const Dashboard: React.FC = () => {
         </button>
         <button 
           onClick={() => navigate('/tenants')}
-          className="card aspect-square p-2 sm:p-3 flex flex-col items-center justify-center text-center hover:border-black/15 hover:shadow-sm active:scale-95 transition-all group tap-target"
+          className="card aspect-square p-3 flex flex-col items-center justify-center text-center hover:border-black/15 hover:shadow-sm active:scale-95 transition-all group tap-target"
         >
           <div className="w-10 h-10 rounded-full bg-main-bg flex items-center justify-center text-accent mb-2 group-hover:scale-110 transition-transform">
             <Users size={20} />
@@ -200,17 +217,8 @@ const Dashboard: React.FC = () => {
           <span className="text-xs font-semibold text-main-text">Tenants</span>
         </button>
         <button 
-          onClick={() => navigate('/tenants?action=add')}
-          className="card aspect-square p-2 sm:p-3 flex flex-col items-center justify-center text-center hover:border-black/15 hover:shadow-sm active:scale-95 transition-all group tap-target"
-        >
-          <div className="w-10 h-10 rounded-full bg-main-bg flex items-center justify-center text-accent mb-2 group-hover:scale-110 transition-transform">
-            <UserPlus size={20} />
-          </div>
-          <span className="text-xs font-semibold text-main-text">Add Tenant</span>
-        </button>
-        <button 
           onClick={() => navigate('/maintenance')}
-          className="card aspect-square p-2 sm:p-3 flex flex-col items-center justify-center text-center hover:border-black/15 hover:shadow-sm active:scale-95 transition-all group tap-target relative"
+          className="card aspect-square p-3 flex flex-col items-center justify-center text-center hover:border-black/15 hover:shadow-sm active:scale-95 transition-all group tap-target relative"
         >
           {maintenance.filter(m => m.status === 'open').length > 0 && (
             <div className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
@@ -224,7 +232,7 @@ const Dashboard: React.FC = () => {
         </button>
         <button 
           onClick={() => navigate('/settings')}
-          className="card aspect-square p-2 sm:p-3 flex flex-col items-center justify-center text-center hover:border-black/15 hover:shadow-sm active:scale-95 transition-all group tap-target"
+          className="card aspect-square p-3 flex flex-col items-center justify-center text-center hover:border-black/15 hover:shadow-sm active:scale-95 transition-all group tap-target"
         >
           <div className="w-10 h-10 rounded-full bg-main-bg flex items-center justify-center text-accent mb-2 group-hover:scale-110 transition-transform">
             <Settings size={20} />
