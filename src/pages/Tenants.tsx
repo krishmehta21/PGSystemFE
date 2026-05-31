@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, ChevronLeft, ChevronDown } from 'lucide-react';
+import { ChevronRight, ChevronLeft, ChevronDown, Search } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getTenants, getUnpaidTenants } from '../api/endpoints';
 import type { Tenant } from '../api/types';
@@ -12,6 +12,7 @@ const Tenants: React.FC = () => {
   const location = useLocation();
   
   const [filter, setFilter] = useState<'all' | 'unpaid' | 'renewals'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -177,7 +178,17 @@ const Tenants: React.FC = () => {
 
   // Group tenants by room
   const groupedTenants = React.useMemo(() => {
-    const groups = tenants.reduce((acc, tenant) => {
+    const query = searchQuery.toLowerCase().trim();
+    const filteredTenants = tenants.filter(t => {
+      if (!query) return true;
+      return (
+        t.name.toLowerCase().includes(query) ||
+        (t.room_number && t.room_number.toLowerCase().includes(query)) ||
+        (t.phone && t.phone.toLowerCase().includes(query))
+      );
+    });
+
+    const groups = filteredTenants.reduce((acc, tenant) => {
       const room = tenant.room_number || 'Unassigned';
       if (!acc[room]) acc[room] = [];
       acc[room].push(tenant);
@@ -189,7 +200,7 @@ const Tenants: React.FC = () => {
       if (b === 'Unassigned') return -1;
       return a.localeCompare(b, undefined, { numeric: true });
     }).map(room => ({ room, tenants: groups[room] }));
-  }, [tenants]);
+  }, [tenants, searchQuery]);
 
   // No animation on load, state handles it
 
@@ -223,6 +234,19 @@ const Tenants: React.FC = () => {
               + Add Tenant
             </button>
           </div>
+        </div>
+
+        <div className="relative mb-4">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search size={16} className="text-black/40" />
+          </div>
+          <input
+            type="text"
+            className="block w-full pl-10 pr-3 py-2.5 border border-main-border rounded-xl leading-5 bg-white placeholder-black/40 focus:outline-none focus:ring-1 focus:ring-main-text focus:border-main-text sm:text-sm shadow-sm transition-all text-main-text"
+            placeholder="Search by name, room, or phone..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
 
         <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-hide">
