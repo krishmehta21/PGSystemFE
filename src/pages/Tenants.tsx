@@ -85,7 +85,8 @@ const Tenants: React.FC = () => {
     try {
       const response = await fetch(`${baseUrl}/api/v1/pgs/${pgId}/export/rent-ledger`, {
         headers: {
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${token}`,
+          "X-PG-ID": pgId
         }
       });
       if (!response.ok) throw new Error("Failed to download CSV");
@@ -266,40 +267,40 @@ const Tenants: React.FC = () => {
                         key={tenant.id}
                         id={`tenant-${tenant.id}`}
                         onClick={() => navigate(`/tenant/${tenant.id}`)}
-                        className={`card w-full flex items-center justify-between p-4 hover:border-gray-300 active:bg-gray-50/50 transition-all tap-target text-left group ${
+                        className={`card w-full flex items-center gap-3 px-4 py-3 min-h-[56px] hover:border-gray-300 active:bg-gray-50/50 transition-all tap-target text-left group ${
                           renewalDue 
                             ? 'border-amber-300 bg-amber-50/20 ring-2 ring-amber-300 ring-offset-1 scale-[1.01]' 
                             : ''
                         }`}
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="shrink-0">
                           <Avatar 
                             initials={tenant.name.split(' ').map(n => n[0]).join('')} 
                             isPaid={tenant.rent_status === 'paid'} 
                           />
-                          <div>
-                            <h3 className="font-semibold text-sm text-main-text flex items-center gap-2">
-                              {tenant.name}
-                              {renewalDue && (
-                                <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-                                  ⚠️ Renewal Due
-                                </span>
-                              )}
-                            </h3>
-                            <p className="text-black/60 text-xs mt-0.5 font-medium">Room {tenant.room_number || 'N/A'} · {tenant.bed_label || 'N/A'}</p>
-                          </div>
                         </div>
                         
-                        <div className="flex items-center gap-2.5">
-                          <span className={`px-2.5 py-1 rounded-md text-[11px] font-semibold border ${
-                            tenant.rent_status === 'paid' 
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
-                              : 'bg-red-50 text-red-600 border-red-100'
-                          }`}>
-                            {tenant.rent_status === 'paid' ? 'Paid' : 'Unpaid'}
-                          </span>
-                          <ChevronRight size={16} className="text-black/40 shrink-0 group-hover:text-black/60 transition-colors" />
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-sm text-main-text flex items-center gap-2 truncate">
+                            {tenant.name}
+                            {renewalDue && (
+                              <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0">
+                                ⚠️ Renewal Due
+                              </span>
+                            )}
+                          </h3>
+                          <p className="text-black/60 text-xs mt-0.5 font-medium truncate">Room {tenant.room_number || 'N/A'} · {tenant.bed_label || 'N/A'}</p>
                         </div>
+                        
+                        <span className={`ml-auto shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                          tenant.rent_status === 'paid' 
+                            ? 'bg-green-50 text-green-700 border-green-200' 
+                            : 'bg-red-50 text-red-600 border-red-200'
+                        }`}>
+                          {tenant.rent_status === 'paid' ? 'Paid' : 'Unpaid'}
+                        </span>
+                        
+                        <ChevronRight size={16} className="text-black/40 shrink-0 group-hover:text-black/60 transition-colors" />
                       </button>
                     );
                   })}

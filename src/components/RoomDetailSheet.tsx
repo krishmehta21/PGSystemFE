@@ -1,9 +1,8 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import {
-  UserPlus, Phone, CheckCircle, Clock,
-  ArrowRight, Pencil, Trash2, PlusCircle,
-  MinusCircle, ChevronLeft
+  UserPlus, Pencil, Trash2, PlusCircle,
+  MinusCircle, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import Loader from './Loader';
 import type { Room, Bed, Tenant } from '../api/types';
@@ -150,36 +149,30 @@ const RoomDetailSheet: React.FC<RoomDetailSheetProps> = ({
                           /* ── Occupied ─────────────────────────────── */
                           <button
                             onClick={() => { onClose(); onNavigateTenant(tenant.id); }}
-                            className="w-full flex items-center justify-between tap-target"
+                            className="w-full flex items-center gap-3 px-1 py-1 min-h-[56px] tap-target group text-left"
                           >
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div className="w-9 h-9 rounded-lg bg-main-text flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                            <div className="shrink-0">
+                              <div className="w-10 h-10 rounded-lg bg-main-text flex items-center justify-center text-white font-semibold text-sm">
                                 {tenant.name.charAt(0).toUpperCase()}
                               </div>
-                              <div className="min-w-0">
-                                <p className="text-sm font-semibold leading-tight truncate text-main-text">
-                                  {tenant.name}
-                                </p>
-                                <p className="text-xs text-black/60 font-medium flex items-center gap-1 mt-0.5">
-                                  <Phone size={10} /> {tenant.phone}
-                                </p>
-                              </div>
                             </div>
-                            <div className="flex flex-col items-end gap-1 flex-shrink-0 ml-3">
-                              <p className="text-sm font-bold text-main-text">
-                                ₹{Number(tenant.rent_amount).toLocaleString('en-IN')}
+                            
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold leading-tight truncate text-main-text">
+                                {tenant.name}
                               </p>
-                              <span
-                                className={`text-[10px] font-semibold px-2 py-0.5 rounded flex items-center gap-1 border ${
-                                  isPaid ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'
-                                }`}
-                              >
-                                {isPaid ? <CheckCircle size={9} /> : <Clock size={9} />}
-                                {isPaid ? 'Paid' : 'Unpaid'}
-                              </span>
-                              <p className="text-[10px] text-black/40">{bed.bed_label}</p>
+                              <p className="text-xs text-black/60 font-medium truncate mt-0.5">
+                                ₹{Number(tenant.rent_amount).toLocaleString('en-IN')} · {tenant.phone}
+                              </p>
                             </div>
-                            <ArrowRight size={14} className="text-black/40 ml-2 flex-shrink-0" />
+
+                            <span className={`ml-auto shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                              isPaid ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-600 border-red-200'
+                            }`}>
+                              {isPaid ? 'Paid' : 'Unpaid'}
+                            </span>
+                            
+                            <ChevronRight size={16} className="text-black/40 shrink-0 group-hover:text-black/60 transition-colors" />
                           </button>
                         ) : (
                           /* ── Empty ────────────────────────────────── */
