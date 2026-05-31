@@ -37,7 +37,7 @@ const Login: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-main-bg px-4 py-12">
       <div className="mb-8 flex items-end">
-        <h1 className="font-serif text-4xl text-main-text tracking-tight">PG Control</h1>
+        <h1 className="font-serif text-4xl text-main-text tracking-tight">RentFlow</h1>
         <div className="w-2.5 h-2.5 bg-accent rounded-full ml-1.5 mb-2"></div>
       </div>
 

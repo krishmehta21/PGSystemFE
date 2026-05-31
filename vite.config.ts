@@ -11,12 +11,13 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'PG Control',
-        short_name: 'PG Control',
-        description: 'PG Control - Property management for PG owners.',
-        theme_color: '#E8B86D',
-        background_color: '#0F0F0F',
+        name: 'RentFlow',
+        short_name: 'RentFlow',
+        description: 'PG Management Simplified',
+        start_url: '/',
         display: 'standalone',
+        theme_color: '#C9A84C',
+        background_color: '#FAFAF8',
         icons: [
           {
             src: 'pwa-192x192.png',

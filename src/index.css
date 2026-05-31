@@ -179,3 +179,13 @@
   83.33%  {background-position: 0 calc(50% + 10px),0 50%             ,50% calc(50% + 10px),50% 50%             ,100% 50%             ,100% calc(50% - 10px)}
   95%,100%{background-position: 0 calc(50% + 10px),0 50%             ,50% calc(50% + 10px),50% 50%             ,100% calc(50% + 10px),100% 50%}
 }
+
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+.marquee {
+  display: inline-block;
+  animation: marquee 18s linear infinite;
+  white-space: nowrap;
+}

@@ -11,7 +11,8 @@ const Layout: React.FC = () => {
   const role = localStorage.getItem('pg_role');
   const contextId = localStorage.getItem('pg_context_id');
   const [userEmail, setUserEmail] = useState<string>('owner@pgcontrol.com');
-  const [pgName, setPgName] = useState<string>('PG Control');
+  const [pgName, setPgName] = useState<string>('RentFlow');
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string>('active');
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   // Close mobile menu on route change
@@ -22,7 +23,12 @@ const Layout: React.FC = () => {
   // Fetch dynamic user email and PG name
   useEffect(() => {
     getMe().then(user => setUserEmail(user.email)).catch(console.error);
-    getMyPG().then(pg => setPgName(pg.name)).catch(console.error);
+    getMyPG().then(pg => {
+      setPgName(pg.name);
+      if (pg.subscription_status) {
+        setSubscriptionStatus(pg.subscription_status);
+      }
+    }).catch(console.error);
   }, []);
 
   const handleSignOut = () => {
@@ -44,13 +50,19 @@ const Layout: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen bg-main-bg flex flex-col md:flex-row">
-      {/* Mobile Top Bar */}
+    <div className="min-h-screen flex flex-col">
+      {subscriptionStatus === 'warning' && (
+        <div className="w-full h-8 bg-black text-white flex items-center overflow-hidden z-[60] shrink-0">
+          <div className="marquee text-sm font-medium tracking-wide">
+            ⚠ App Subscription Payment Pending — Please contact support to avoid suspension. ⚠ App Subscription Payment Pending — Please contact support to avoid suspension.
+          </div>
+        </div>
+      )}
+      <div className="flex-1 flex flex-col md:flex-row bg-main-bg relative">
+        {/* Mobile Top Bar */}
       <header className="md:hidden h-16 bg-white border-b border-main-border flex items-center justify-between px-4 sticky top-0 z-40">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center text-bg font-bold font-serif text-xs">
-            PG
-          </div>
+          <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center text-bg font-bold font-serif text-xs">RF</div>
           <span className="font-serif text-lg text-main-text">{pgName}</span>
         </div>
         <button aria-label="Open menu"
@@ -104,7 +116,8 @@ const Layout: React.FC = () => {
       {/* Main Content */}
       <main key={location.pathname} className="flex-1 w-full max-w-[1200px] mx-auto min-h-[calc(100vh-64px)] md:min-h-screen animate-fade-up">
         <Outlet />
-      </main>
+        </main>
+      </div>
 
       <style>{`
         @keyframes slideRight {

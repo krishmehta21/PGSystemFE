@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, LogOut, Menu, X, Shield } from 'lucide-react';
+import { LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
 import { getMe } from '../api/endpoints';
 
 const AdminLayout: React.FC = () => {
@@ -35,10 +35,10 @@ const AdminLayout: React.FC = () => {
       {/* Mobile Top Bar */}
       <header className="md:hidden h-16 bg-white border-b border-main-border flex items-center justify-between px-4 sticky top-0 z-40">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center text-bg">
-            <Shield size={14} />
+          <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center text-bg font-bold font-serif text-xs">
+            RF
           </div>
-          <span className="font-serif text-lg text-main-text">Admin Ops</span>
+          <span className="font-serif text-lg text-main-text">RentFlow Admin</span>
         </div>
         <button aria-label="Open menu"
           onClick={() => setIsMobileMenuOpen(true)}
@@ -98,10 +98,10 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ userEmail, handleSignOu
     {/* Top: Brand */}
     <div className="h-16 flex items-center px-6 border-b border-white/5">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-bg">
-          <Shield size={16} />
+        <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-bg font-bold font-serif text-sm">
+          RF
         </div>
-        <span className="font-serif text-lg tracking-wide text-text-primary">Admin Ops</span>
+        <span className="font-serif text-lg tracking-wide text-text-primary">RentFlow Admin</span>
       </div>
     </div>
 

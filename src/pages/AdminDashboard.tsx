@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createPG, getAdminPGs } from '../api/endpoints';
+import { createPG, getAdminPGs, updatePGSubscription } from '../api/endpoints';
 import Loader from '../components/Loader';
 import { Plus, Building2, Copy, Check, ExternalLink, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -56,6 +56,32 @@ const AdminDashboard: React.FC = () => {
     localStorage.setItem('pg_context_id', pgId);
     navigate('/');
     window.location.reload();
+  };
+
+  const handleToggleSubscription = async (pgId: string, isActive: boolean) => {
+    try {
+      await updatePGSubscription(pgId, {
+        is_active: isActive,
+        subscription_status: isActive ? "active" : "suspended"
+      });
+      fetchPGs();
+    } catch (err: any) {
+      console.error("Failed to update subscription:", err);
+      alert("Failed to update subscription");
+    }
+  };
+
+  const handleWarnSubscription = async (pgId: string) => {
+    try {
+      await updatePGSubscription(pgId, {
+        is_active: true,
+        subscription_status: "warning"
+      });
+      fetchPGs();
+    } catch (err: any) {
+      console.error("Failed to warn subscription:", err);
+      alert("Failed to warn");
+    }
   };
 
   const copyToClipboard = () => {
@@ -178,15 +204,45 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2.5 mt-4">
-                  <div className="bg-gray-50 px-2.5 py-1 rounded-md flex items-center gap-1.5 border border-main-border">
+                <div className="flex items-center gap-2 mt-4">
+                  <div className="bg-gray-50 px-2 py-1 rounded-md flex items-center gap-1.5 border border-main-border">
                     <span className="text-[9px] uppercase font-semibold text-black/40 tracking-wider">Key</span>
-                    <span className="font-mono font-semibold text-sm text-main-text">{pg.activation_code}</span>
+                    <span className="font-mono font-semibold text-xs text-main-text">{pg.activation_code}</span>
                   </div>
+
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
+                    pg.subscription_status === 'suspended' ? 'bg-red-100 text-red-600' :
+                    pg.subscription_status === 'warning' ? 'bg-amber-100 text-amber-600' :
+                    'bg-green-100 text-green-600'
+                  }`}>
+                    {pg.subscription_status === 'suspended' ? 'Suspended' : pg.subscription_status === 'warning' ? 'Warning' : 'Active'}
+                  </span>
+                  
+                  <div className="flex-1"></div>
+
+                  <button 
+                    onClick={() => handleWarnSubscription(pg.id)}
+                    className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors font-semibold text-xs"
+                  >
+                    Warn
+                  </button>
+
+                  <label className="flex items-center cursor-pointer mx-1" title="Toggle Active Status">
+                    <div className="relative">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only" 
+                        checked={pg.is_active !== false}
+                        onChange={(e) => handleToggleSubscription(pg.id, e.target.checked)}
+                      />
+                      <div className={`block w-8 h-4 rounded-full transition-colors ${pg.is_active !== false ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      <div className={`dot absolute left-[2px] top-[2px] bg-white w-3 h-3 rounded-full transition-transform ${pg.is_active !== false ? 'transform translate-x-4' : ''}`}></div>
+                    </div>
+                  </label>
                   
                   <button 
                     onClick={() => handleManage(pg.id)}
-                    className="ml-auto flex items-center gap-1.5 bg-main-text text-white px-4 py-2 rounded-lg font-semibold text-xs hover:bg-accent transition-colors"
+                    className="flex items-center gap-1.5 bg-main-text text-white px-3 py-1.5 rounded-lg font-semibold text-xs hover:bg-accent transition-colors"
                   >
                     Manage
                     <ExternalLink size={12} />

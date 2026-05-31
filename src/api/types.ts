@@ -5,6 +5,8 @@ export interface PG {
   whatsapp_message_template: string;
   activation_code?: string;
   created_at: string;
+  is_active?: boolean;
+  subscription_status?: 'active' | 'warning' | 'suspended';
 }
 
 export interface User {

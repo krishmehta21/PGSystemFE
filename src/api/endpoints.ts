@@ -84,6 +84,9 @@ export const createPG = (data: PGCreate) => client.post<PG>("/api/v1/pgs", data)
 
 export const updatePG = (id: string, data: PGUpdate) => client.put<PG>(`/api/v1/pgs/${id}`, data);
 
+export const updatePGSubscription = (id: string, data: { is_active: boolean, subscription_status: "active" | "warning" | "suspended" }) => 
+  client.patch<PG>(`/api/v1/pgs/${id}/subscription`, data);
+
 // ── Documents ─────────────────────────────────────────────────────────────
 export interface TenantDocument {
   name: string;

@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import AdminLayout from './components/AdminLayout';
 import { getMyPG } from './api/endpoints';
 import Loader from './components/Loader';
+import { startKeepAlive, stopKeepAlive } from './utils/keepAlive';
 
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard'));
@@ -15,6 +16,7 @@ const Login = React.lazy(() => import('./pages/Login'));
 const Register = React.lazy(() => import('./pages/Register'));
 const ActivationScreen = React.lazy(() => import('./pages/ActivationScreen'));
 const Maintenance = React.lazy(() => import('./pages/Maintenance'));
+const Paywall = React.lazy(() => import('./pages/Paywall'));
 
 const ProtectedRoute = ({ children, requireRole }: { children: React.ReactNode, requireRole?: 'admin' | 'owner' }) => {
   const token = localStorage.getItem('pg_token');
@@ -39,11 +41,15 @@ const ProtectedRoute = ({ children, requireRole }: { children: React.ReactNode, 
 const PGGuard = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [noPG, setNoPG] = useState(false);
+  const [isSuspended, setIsSuspended] = useState(false);
 
   useEffect(() => {
     const checkPG = async () => {
       try {
-        await getMyPG();
+        const pg = await getMyPG();
+        if (pg.is_active === false) {
+          setIsSuspended(true);
+        }
         setNoPG(false);
       } catch (err: any) {
         if (err.status === 404) {
@@ -70,10 +76,19 @@ const PGGuard = ({ children }: { children: React.ReactNode }) => {
     return <ActivationScreen />;
   }
 
+  if (isSuspended) {
+    return <Navigate to="/suspended" replace />;
+  }
+
   return <>{children}</>;
 };
 
 function App() {
+  useEffect(() => {
+    const id = startKeepAlive();
+    return () => stopKeepAlive(id);
+  }, []);
+
   return (
     <Router>
       <Suspense fallback={
@@ -92,6 +107,12 @@ function App() {
           }>
             <Route index element={<AdminDashboard />} />
           </Route>
+
+          <Route path="/suspended" element={
+            <ProtectedRoute requireRole="owner">
+              <Paywall />
+            </ProtectedRoute>
+          } />
 
           <Route path="/" element={
             <ProtectedRoute requireRole="owner">

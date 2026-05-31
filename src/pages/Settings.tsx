@@ -179,7 +179,7 @@ const Settings: React.FC = () => {
 
       {/* App Info */}
       <section className="space-y-0.5 pt-6 border-t border-main-border text-center mt-8">
-        <p className="text-xs font-semibold text-black/40 tracking-wide uppercase">PG Control System</p>
+        <p className="text-xs font-semibold text-black/40 tracking-wide uppercase">RentFlow System</p>
         <p className="text-xs text-black/60 font-medium">Version 1.0.0</p>
       </section>
     </div>

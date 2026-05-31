@@ -44,14 +44,14 @@ const Register: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-main-bg px-4 py-12">
       <div className="mb-8 flex items-end">
-        <h1 className="font-serif text-4xl text-main-text tracking-tight">PG Control</h1>
+        <h1 className="font-serif text-4xl text-main-text tracking-tight">RentFlow</h1>
         <div className="w-2.5 h-2.5 bg-accent rounded-full ml-1.5 mb-2"></div>
       </div>
 
       <div className="w-full max-w-[400px] bg-white p-6 sm:p-10 rounded-[12px] border border-main-border shadow-[0_1px_3px_rgba(0,0,0,0.06),_0_1px_2px_rgba(0,0,0,0.04)] animate-fade-up">
         <div className="mb-8">
           <h2 className="font-serif text-2xl text-main-text">Create account</h2>
-          <p className="text-sm text-text-secondary mt-1">Get started with PG Control</p>
+          <p className="text-sm text-text-secondary mt-1">Get started with RentFlow</p>
         </div>
         
         {error && (
