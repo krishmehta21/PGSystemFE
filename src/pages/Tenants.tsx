@@ -274,7 +274,7 @@ const Tenants: React.FC = () => {
                 </button>
                 <div className={isCollapsed ? 'hidden' : 'space-y-2'}>
                   {roomTenants.map(tenant => {
-                    const renewalDue = highlightRenewals && isRenewalDue(tenant);
+                    const renewalDue = isRenewalDue(tenant);
                     return (
                       <button 
                         key={tenant.id}
