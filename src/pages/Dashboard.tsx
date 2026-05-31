@@ -123,7 +123,7 @@ const Dashboard: React.FC = () => {
             {/* Renewals Warning Banner */}
             {renewals.length > 0 && (
               <button
-                onClick={() => navigate('/tenants?highlight_renewals=true')}
+                onClick={() => navigate('/tenants?filter=renewals')}
                 className="w-full text-left bg-amber-50 text-amber-700 p-4 rounded-xl border border-amber-200 flex items-start gap-3 shadow-sm hover:border-amber-300 active:scale-95 transition-all cursor-pointer"
               >
                 <div className="p-1.5 bg-amber-100 rounded-full mt-0.5 text-amber-600">

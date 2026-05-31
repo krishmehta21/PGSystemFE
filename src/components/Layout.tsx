@@ -54,7 +54,7 @@ const Layout: React.FC = () => {
       {subscriptionStatus === 'warning' && (
         <div className="w-full h-8 bg-black text-white flex items-center overflow-hidden z-[60] shrink-0">
           <div className="marquee text-sm font-medium tracking-wide">
-            ⚠ App Subscription Payment Pending — Please contact support to avoid suspension. ⚠ App Subscription Payment Pending — Please contact support to avoid suspension.
+            ⚠ App Subscription Payment Pending — Please contact support to avoid suspension.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⚠ App Subscription Payment Pending — Please contact support to avoid suspension.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⚠ App Subscription Payment Pending — Please contact support to avoid suspension.
           </div>
         </div>
       )}

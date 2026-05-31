@@ -11,7 +11,7 @@ const Tenants: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const [filter, setFilter] = useState<'all' | 'unpaid'>('all');
+  const [filter, setFilter] = useState<'all' | 'unpaid' | 'renewals'>('all');
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -36,6 +36,8 @@ const Tenants: React.FC = () => {
     const searchParams = new URLSearchParams(location.search);
     if (searchParams.get('filter') === 'unpaid') {
       setFilter('unpaid');
+    } else if (searchParams.get('filter') === 'renewals') {
+      setFilter('renewals');
     }
     if (searchParams.get('highlight_renewals') === 'true') {
       setHighlightRenewals(true);
@@ -135,9 +137,15 @@ const Tenants: React.FC = () => {
     setLoading(true);
     setError(false);
     try {
-      const data = filter === 'unpaid' 
+      let data = filter === 'unpaid' 
         ? await getUnpaidTenants() 
         : await getTenants();
+      
+      if (filter === 'renewals') {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 10);
+        data = data.filter(t => t.is_active !== false && new Date(t.move_in_date) < d);
+      }
       setTenants(data);
       setCache(cacheKey, data);
     } catch (err) {
@@ -217,7 +225,7 @@ const Tenants: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex gap-1.5">
+        <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-hide">
           <FilterPill 
             label="All" 
             active={filter === 'all'} 
@@ -227,6 +235,11 @@ const Tenants: React.FC = () => {
             label="Unpaid Only" 
             active={filter === 'unpaid'} 
             onClick={() => setFilter('unpaid')} 
+          />
+          <FilterPill 
+            label="Renewals Due" 
+            active={filter === 'renewals'} 
+            onClick={() => setFilter('renewals')} 
           />
         </div>
       </header>
