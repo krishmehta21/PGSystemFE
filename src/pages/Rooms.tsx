@@ -471,26 +471,28 @@ const Rooms: React.FC = () => {
       {/* ── Sticky header ──────────────────────────────────────────────────── */}
       <div className="bg-white px-4 pt-5 pb-4 border-b border-main-border sticky top-0 z-10">
         {/* Title row */}
-        <div className="h-16 flex items-center justify-center relative mb-3">
-          <button aria-label="Go back" onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/')} className="absolute left-0 p-2 -ml-2 transition-colors active:bg-gray-100 rounded-md tap-target">
-            <ChevronLeft size={24} className="text-main-text" />
-          </button>
-          <div className="flex flex-col items-center">
-            <h1 className="text-lg font-bold text-main-text">Rooms</h1>
-            <p className="text-[10px] text-black/60 font-medium mt-0.5">
-              {loading ? 'Loading…' : `${occupiedBeds}/${totalBeds} beds · ${rooms.length} room${rooms.length !== 1 ? 's' : ''}`}
-            </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <div className="flex items-center gap-1">
+            <button aria-label="Go back" onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/')} className="p-2 -ml-2 transition-colors active:bg-gray-100 rounded-md tap-target flex-shrink-0">
+              <ChevronLeft size={24} className="text-main-text" />
+            </button>
+            <div className="flex flex-col">
+              <h1 className="text-lg font-bold text-main-text">Rooms</h1>
+              <p className="text-[10px] text-black/60 font-medium mt-0.5">
+                {loading ? 'Loading…' : `${occupiedBeds}/${totalBeds} beds · ${rooms.length} room${rooms.length !== 1 ? 's' : ''}`}
+              </p>
+            </div>
           </div>
-          <div className="absolute right-0 pr-4 flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0">
             <button
               onClick={() => { setShowBulkModal(true); }}
-              className="bg-white text-main-text border border-main-border px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 tap-target hover:bg-gray-50 transition-colors shadow-sm"
+              className="bg-white text-main-text border border-main-border px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 tap-target hover:bg-gray-50 transition-colors shadow-sm flex-1 sm:flex-none"
             >
               <Grid size={14} /> Bulk Add
             </button>
             <button
               onClick={() => { setRoomError(''); setShowAddRoom(true); }}
-              className="bg-main-text text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 tap-target hover:bg-accent transition-colors shadow-sm"
+              className="bg-main-text text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 tap-target hover:bg-accent transition-colors shadow-sm flex-1 sm:flex-none"
             >
               <Plus size={14} /> Add Room
             </button>

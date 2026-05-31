@@ -197,7 +197,7 @@ const Dashboard: React.FC = () => {
       </button>
 
       <h2 className="font-serif text-[18px] text-main-text mb-4">Quick Actions</h2>
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <button 
           onClick={() => navigate('/rooms')}
           className="card aspect-square p-3 flex flex-col items-center justify-center text-center hover:border-black/15 hover:shadow-sm active:scale-95 transition-all group tap-target"
@@ -229,15 +229,6 @@ const Dashboard: React.FC = () => {
             <Wrench size={20} />
           </div>
           <span className="text-xs font-semibold text-main-text">Issues</span>
-        </button>
-        <button 
-          onClick={() => navigate('/settings')}
-          className="card aspect-square p-3 flex flex-col items-center justify-center text-center hover:border-black/15 hover:shadow-sm active:scale-95 transition-all group tap-target"
-        >
-          <div className="w-10 h-10 rounded-full bg-main-bg flex items-center justify-center text-accent mb-2 group-hover:scale-110 transition-transform">
-            <Settings size={20} />
-          </div>
-          <span className="text-xs font-semibold text-main-text">Settings</span>
         </button>
       </div>
     </div>

@@ -65,12 +65,20 @@ const Layout: React.FC = () => {
           <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center text-bg font-bold font-serif text-xs">RF</div>
           <span className="font-serif text-lg text-main-text">{pgName}</span>
         </div>
-        <button aria-label="Open menu"
-          onClick={() => setIsMobileMenuOpen(true)}
-          className="p-2 -mr-2 text-main-text"
-        >
-          <Menu size={24} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button aria-label="Settings"
+            onClick={() => navigate('/settings')}
+            className="p-2 text-main-text hover:bg-gray-50 rounded-md"
+          >
+            <Settings size={20} />
+          </button>
+          <button aria-label="Open menu"
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="p-2 -mr-2 text-main-text"
+          >
+            <Menu size={24} />
+          </button>
+        </div>
       </header>
 
       {/* Mobile Drawer Overlay */}
