@@ -181,7 +181,7 @@ const Dashboard: React.FC = () => {
 
       <h2 className="text-black/60 text-[11px] font-semibold tracking-widest uppercase mb-3">QUICK ADD</h2>
       <button 
-        onClick={() => navigate('/tenants?action=add')}
+        onClick={() => navigate('/tenants?action=add&from=dashboard')}
         className="w-full bg-[#0F0F0F] rounded-2xl border-l-4 border-accent px-5 py-4 flex items-center justify-between text-left active:scale-95 transition-all duration-150 shadow-sm mb-8"
       >
         <div className="flex items-center gap-3.5">

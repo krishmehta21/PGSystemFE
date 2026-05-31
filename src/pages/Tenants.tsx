@@ -18,6 +18,7 @@ const Tenants: React.FC = () => {
   const [exporting, setExporting] = useState(false);
   const [highlightRenewals, setHighlightRenewals] = useState(false);
   const [showAddTenant, setShowAddTenant] = useState(false);
+  const [cameFromDashboard, setCameFromDashboard] = useState(false);
   const [collapsedRooms, setCollapsedRooms] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('collapsedRooms');
@@ -39,8 +40,24 @@ const Tenants: React.FC = () => {
     if (searchParams.get('highlight_renewals') === 'true') {
       setHighlightRenewals(true);
     }
-    if (searchParams.get('action') === 'add') {
+    
+    const wasActionAdd = searchParams.get('action') === 'add';
+    const wasFromDashboard = searchParams.get('from') === 'dashboard';
+    
+    if (wasFromDashboard) {
+      setCameFromDashboard(true);
+    }
+    if (wasActionAdd) {
       setShowAddTenant(true);
+    }
+    
+    if (wasActionAdd || wasFromDashboard) {
+      const cleanParams = new URLSearchParams(location.search);
+      cleanParams.delete('action');
+      cleanParams.delete('from');
+      const newSearch = cleanParams.toString();
+      const newPath = location.pathname + (newSearch ? `?${newSearch}` : '');
+      window.history.replaceState(null, '', newPath);
     }
   }, [location.search]);
 
@@ -86,6 +103,20 @@ const Tenants: React.FC = () => {
       alert("Error exporting CSV ledger.");
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleCloseAddTenant = (isSuccess = false, name?: string) => {
+    setShowAddTenant(false);
+    if (isSuccess && name) {
+      invalidateCache('tenants_all');
+      invalidateCache('dashboard');
+      invalidateCache('rooms');
+      loadTenants(true);
+      alert(`${name} assigned successfully!`);
+    }
+    if (cameFromDashboard) {
+      navigate('/dashboard');
     }
   };
 
@@ -156,27 +187,29 @@ const Tenants: React.FC = () => {
   return (
     <div className="p-5">
       <header className="mb-5">
-        <div className="h-16 flex items-center justify-center relative mb-2">
-          <button aria-label="Go back" onClick={() => navigate(-1)} className="absolute left-0 p-2 -ml-2 transition-colors active:bg-gray-100 rounded-md tap-target">
-            <ChevronLeft size={24} className="text-main-text" />
-          </button>
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold text-main-text">Tenants</h1>
-            <span className="bg-main-bg text-black/60 px-2.5 py-0.5 rounded-md text-sm font-semibold border border-main-border">
-              {tenants.length}
-            </span>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <div className="flex items-center gap-1">
+            <button aria-label="Go back" onClick={() => navigate(-1)} className="p-2 -ml-2 transition-colors active:bg-gray-100 rounded-md tap-target flex-shrink-0">
+              <ChevronLeft size={24} className="text-main-text" />
+            </button>
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-bold text-main-text">Tenants</h1>
+              <span className="bg-main-bg text-black/60 px-2.5 py-0.5 rounded-md text-sm font-semibold border border-main-border">
+                {tenants.length}
+              </span>
+            </div>
           </div>
-          <div className="absolute right-0 pr-4 flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0">
             <button
               onClick={handleExportCSV}
               disabled={exporting}
-              className="bg-white border border-main-border text-black/60 px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:border-gray-300 transition-colors tap-target flex items-center gap-1 disabled:opacity-50 shadow-sm"
+              className="bg-white border border-main-border text-black/60 px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:border-gray-300 transition-colors tap-target flex items-center gap-1 disabled:opacity-50 shadow-sm flex-shrink-0"
             >
               {exporting ? "..." : "📥 CSV"}
             </button>
             <button
               onClick={() => setShowAddTenant(true)}
-              className="bg-main-text text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 tap-target hover:bg-accent transition-colors shadow-sm"
+              className="bg-main-text text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 tap-target hover:bg-accent transition-colors shadow-sm flex-1 sm:flex-none text-center"
             >
               + Add Tenant
             </button>
@@ -301,14 +334,9 @@ const Tenants: React.FC = () => {
       )}
       {showAddTenant && (
         <AddTenantSheet
-          onClose={() => setShowAddTenant(false)}
+          onClose={() => handleCloseAddTenant(false)}
           onSuccess={(name) => {
-            setShowAddTenant(false);
-            invalidateCache('tenants_all');
-            invalidateCache('dashboard');
-            invalidateCache('rooms');
-            loadTenants(true);
-            alert(`${name} assigned successfully!`);
+            handleCloseAddTenant(true, name);
           }}
         />
       )}

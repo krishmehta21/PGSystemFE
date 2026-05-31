@@ -124,6 +124,7 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={<Dashboard />} />
+            <Route path="dashboard" element={<Navigate to="/" replace />} />
             <Route path="rooms" element={<Rooms />} />
             <Route path="tenants" element={<Tenants />} />
             <Route path="tenant/:id" element={<TenantDetail />} />
