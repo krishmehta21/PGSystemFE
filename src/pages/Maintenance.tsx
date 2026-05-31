@@ -44,8 +44,8 @@ const Maintenance: React.FC = () => {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedTenantId || !title.trim() || !description.trim()) {
-      setError("Please fill all fields");
+    if (!selectedTenantId || !title.trim()) {
+      setError("Please fill all required fields");
       return;
     }
     setSubmitting(true);
@@ -255,14 +255,13 @@ const Maintenance: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-main-text mb-1.5">Description</label>
+                  <label className="block text-sm font-medium text-main-text mb-1.5">Description (Optional)</label>
                   <textarea 
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Provide details about the issue..."
                     rows={4}
                     className="w-full border border-main-border p-3 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all resize-none"
-                    required
                   />
                 </div>
 

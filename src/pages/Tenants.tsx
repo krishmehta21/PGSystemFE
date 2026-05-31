@@ -3,8 +3,9 @@ import { ChevronRight, ChevronLeft, ChevronDown } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getTenants, getUnpaidTenants } from '../api/endpoints';
 import type { Tenant } from '../api/types';
-import { getCache, setCache } from '../utils/cache';
+import { getCache, setCache, invalidateCache } from '../utils/cache';
 import Loader from '../components/Loader';
+import AddTenantSheet from '../components/AddTenantSheet';
 
 const Tenants: React.FC = () => {
   const navigate = useNavigate();
@@ -16,8 +17,19 @@ const Tenants: React.FC = () => {
   const [error, setError] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [highlightRenewals, setHighlightRenewals] = useState(false);
-  const [collapsedRooms, setCollapsedRooms] = useState<string[]>([]);
-  const [hasAnimated, setHasAnimated] = useState(false);
+  const [showAddTenant, setShowAddTenant] = useState(false);
+  const [collapsedRooms, setCollapsedRooms] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('collapsedRooms');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('collapsedRooms', JSON.stringify(collapsedRooms));
+  }, [collapsedRooms]);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -136,16 +148,7 @@ const Tenants: React.FC = () => {
     }).map(room => ({ room, tenants: groups[room] }));
   }, [tenants]);
 
-  // Animate collapse on initial load
-  useEffect(() => {
-    if (!loading && groupedTenants.length > 0 && !hasAnimated && filter === 'all') {
-      const timer = setTimeout(() => {
-        setCollapsedRooms(groupedTenants.map(g => g.room));
-        setHasAnimated(true);
-      }, 600);
-      return () => clearTimeout(timer);
-    }
-  }, [loading, groupedTenants, hasAnimated, filter]);
+  // No animation on load, state handles it
 
   return (
     <div className="p-5">
@@ -160,13 +163,21 @@ const Tenants: React.FC = () => {
               {tenants.length}
             </span>
           </div>
-          <button
-            onClick={handleExportCSV}
-            disabled={exporting}
-            className="absolute right-0 bg-white border border-main-border text-black/60 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold hover:border-gray-300 transition-colors tap-target flex items-center gap-1 disabled:opacity-50"
-          >
-            {exporting ? "..." : "📥 CSV"}
-          </button>
+          <div className="absolute right-0 pr-4 flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={handleExportCSV}
+              disabled={exporting}
+              className="bg-white border border-main-border text-black/60 px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:border-gray-300 transition-colors tap-target flex items-center gap-1 disabled:opacity-50 shadow-sm"
+            >
+              {exporting ? "..." : "📥 CSV"}
+            </button>
+            <button
+              onClick={() => setShowAddTenant(true)}
+              className="bg-main-text text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 tap-target hover:bg-accent transition-colors shadow-sm"
+            >
+              + Add Tenant
+            </button>
+          </div>
         </div>
 
         <div className="flex gap-1.5">
@@ -211,9 +222,7 @@ const Tenants: React.FC = () => {
                   </h2>
                   {isCollapsed ? <ChevronRight size={16} className="text-black/40" /> : <ChevronDown size={16} className="text-black/40" />}
                 </button>
-                <div className={`space-y-2 overflow-hidden transition-all duration-300 origin-top ${
-                  isCollapsed ? 'max-h-0 opacity-0 scale-y-95 pointer-events-none' : 'max-h-[5000px] opacity-100 scale-y-100'
-                }`}>
+                <div className={isCollapsed ? 'hidden' : 'space-y-2'}>
                   {roomTenants.map(tenant => {
                     const renewalDue = highlightRenewals && isRenewalDue(tenant);
                     return (
@@ -286,6 +295,19 @@ const Tenants: React.FC = () => {
             </div>
           )}
         </div>
+      )}
+      {showAddTenant && (
+        <AddTenantSheet
+          onClose={() => setShowAddTenant(false)}
+          onSuccess={(name) => {
+            setShowAddTenant(false);
+            invalidateCache('tenants_all');
+            invalidateCache('dashboard');
+            invalidateCache('rooms');
+            loadTenants(true);
+            alert(`${name} assigned successfully!`);
+          }}
+        />
       )}
     </div>
   );

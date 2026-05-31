@@ -25,15 +25,16 @@ const getFloorLabel = (roomNumber: string): string => {
 
 import {
   getRooms, getBeds, getTenants,
-  createTenant, createRoom, updateRoom, deleteRoom,
+  createRoom, updateRoom, deleteRoom,
   createBed, deleteBed, bulkDeleteRooms
 } from '../api/endpoints';
-import type { Room, Bed, Tenant, TenantCreate } from '../api/types';
+import type { Room, Bed, Tenant } from '../api/types';
 import { getCache, setCache, invalidateCache } from '../utils/cache';
 
 import RoomCard     from '../components/RoomCard';
 import RoomGrid     from '../components/RoomGrid';
 import RoomDetailSheet from '../components/RoomDetailSheet';
+import AddTenantSheet  from '../components/AddTenantSheet';
 import SortControl, { type SortOption } from '../components/SortControl';
 import ViewToggle,  { type ViewMode } from '../components/ViewToggle';
 import BulkRoomModal from '../components/BulkRoomModal';
@@ -111,8 +112,21 @@ const Rooms: React.FC = () => {
   const [sortBy,      setSortBy]      = useState<SortOption>('room_asc');
   const [toast,       setToast]       = useState('');
   const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
-  const [collapsedFloors, setCollapsedFloors] = useState<string[]>([]);
-  const [seenFloors, setSeenFloors] = useState<string[]>([]);
+  
+  // Initialize collapsed floors from localStorage
+  const [collapsedFloors, setCollapsedFloors] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('collapsedFloors');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  
+  // Write to localStorage on change
+  useEffect(() => {
+    localStorage.setItem('collapsedFloors', JSON.stringify(collapsedFloors));
+  }, [collapsedFloors]);
 
   // ── Bulk Delete Confirm ──────────────────────────────────────────────────────
   const [bulkDeleteTarget, setBulkDeleteTarget] = useState<string[] | null>(null);
@@ -120,12 +134,16 @@ const Rooms: React.FC = () => {
   const [bulkDeleting,     setBulkDeleting]     = useState(false);
   const [bulkDeleteError,  setBulkDeleteError]  = useState('');
 
+
   // ── Room detail sheet (grid tap OR list tap) ───────────────────────────────
   const [detailRoom, setDetailRoom] = useState<Room | null>(null);
 
   // ── Per-card loading ───────────────────────────────────────────────────────
   const [addingBedRoomId, setAddingBedRoomId] = useState<string | null>(null);
   const [deletingBedId,   setDeletingBedId]   = useState<string | null>(null);
+
+  // ── Tenant Assign Form State (Handled by AddTenantSheet) ─────────────────
+  const [assignModal, setAssignModal] = useState<{ room: Room; bed: Bed } | null>(null);
 
   // ── Add Room modal ──────────────────────────────────────────────────────────
   const [showAddRoom,    setShowAddRoom]    = useState(false);
@@ -146,32 +164,6 @@ const Rooms: React.FC = () => {
   const [deleteForce,  setDeleteForce]  = useState(false);
   const [deleting,     setDeleting]     = useState(false);
   const [deleteError,  setDeleteError]  = useState('');
-
-  // ── Assign Tenant modal ──────────────────────────────────────────────────────
-  const [assignModal, setAssignModal] = useState<{ room: Room; bed: Bed } | null>(null);
-  const [assignName,  setAssignName]  = useState('');
-  const [assignPhone, setAssignPhone] = useState('');
-  const [assignRent,  setAssignRent]  = useState('');
-  const [assignDate,  setAssignDate]  = useState('');
-  const [assigning,   setAssigning]   = useState(false);
-  const [assignError, setAssignError] = useState('');
-
-  // Extended fields
-  const [assignAadhaar, setAssignAadhaar] = useState('');
-  const [assignPan, setAssignPan] = useState('');
-  const [assignEmergencyName, setAssignEmergencyName] = useState('');
-  const [assignEmergencyPhone, setAssignEmergencyPhone] = useState('');
-  const [assignEmployer, setAssignEmployer] = useState('');
-  const [assignHometown, setAssignHometown] = useState('');
-  const [assignFood, setAssignFood] = useState<'veg' | 'non_veg' | 'both'>('veg');
-  const [assignVehicle, setAssignVehicle] = useState('');
-  const [assignDeposit, setAssignDeposit] = useState('');
-  const [assignDepositDate, setAssignDepositDate] = useState('');
-  const [assignExpectedMoveOut, setAssignExpectedMoveOut] = useState('');
-  const [assignOccupancy, setAssignOccupancy] = useState<'single' | 'double' | 'triple'>('single');
-  const [showExtendedAssign, setShowExtendedAssign] = useState(false);
-  const [hasVehicle, setHasVehicle] = useState(false);
-  const [showScanTooltip, setShowScanTooltip] = useState(false);
 
   // ── Document Parsing ────────────────────────────────────────────────────────
 
@@ -300,15 +292,6 @@ const Rooms: React.FC = () => {
       
       // Auto-collapse floors without vacancy, expand floors with vacancy
       setCollapsedFloors(floorsWithoutVacancy);
-    } else {
-      // Default: collapse all seen floors on initial load
-      const newFloors = floorGroups.sortedKeys.filter((floor) => !seenFloors.includes(floor));
-      if (newFloors.length > 0) {
-        setSeenFloors((prev) => [...prev, ...newFloors]);
-        setTimeout(() => {
-          setCollapsedFloors((prev) => Array.from(new Set([...prev, ...newFloors])));
-        }, 600);
-      }
     }
   }, [isVacantFilterActive, rooms, bedsByRoom, floorGroups.sortedKeys, loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -479,77 +462,7 @@ const Rooms: React.FC = () => {
 
 
 
-  const handleAssignSubmit = async () => {
-    if (!assignModal) return;
-    if (!assignName.trim()) { setAssignError('Name is required.'); return; }
-    const digits = assignPhone.replace(/\D/g, '');
-    if (digits.length !== 10) { setAssignError('Enter a valid 10-digit phone number.'); return; }
-    const rent = Number(assignRent);
-    if (isNaN(rent) || rent <= 0) { setAssignError('Enter a valid rent amount.'); return; }
-    if (!assignDate) { setAssignError('Move-in date is required.'); return; }
-    
-    let aadhaarClean = assignAadhaar.trim();
-    if (aadhaarClean && !/^\d{4}$/.test(aadhaarClean)) {
-      setAssignError('Aadhaar must be exactly 4 digits.');
-      return;
-    }
-    let panClean = assignPan.trim().toUpperCase();
-    if (panClean && !/^[A-Z]{5}\d{4}[A-Z]$/.test(panClean)) {
-      setAssignError('PAN number must match standard format (e.g. ABCDE1234F).');
-      return;
-    }
-    const depositAmt = assignDeposit.trim() ? Number(assignDeposit) : undefined;
-    if (depositAmt !== undefined && (isNaN(depositAmt) || depositAmt < 0)) {
-      setAssignError('Enter a valid deposit amount.');
-      return;
-    }
-
-    setAssigning(true); setAssignError('');
-    try {
-      const payload: TenantCreate = {
-        name: assignName.trim(), 
-        phone: digits, 
-        rent_amount: rent,
-        bed_id: assignModal.bed.id, 
-        move_in_date: assignDate, 
-        rent_status: 'unpaid',
-        
-        aadhaar_last4: aadhaarClean || undefined,
-        pan_number: panClean || undefined,
-        emergency_contact_name: assignEmergencyName.trim() || undefined,
-        emergency_contact_phone: assignEmergencyPhone.replace(/\D/g, '') || undefined,
-        employer_or_college: assignEmployer.trim() || undefined,
-        hometown: assignHometown.trim() || undefined,
-        food_preference: assignFood,
-        vehicle_registration: assignVehicle.trim() || undefined,
-        security_deposit_amount: depositAmt,
-        security_deposit_date: assignDepositDate || undefined,
-        expected_move_out_date: assignExpectedMoveOut || undefined,
-        occupancy_type: assignOccupancy,
-      };
-      await createTenant(payload);
-      const saved = assignName.trim();
-      setAssignModal(null);
-      setAssignName(''); setAssignPhone(''); setAssignRent(''); setAssignDate('');
-      setAssignAadhaar('');
-      setAssignPan('');
-      setAssignEmergencyName('');
-      setAssignEmergencyPhone('');
-      setAssignEmployer('');
-      setAssignHometown('');
-      setAssignFood('veg');
-      setAssignVehicle('');
-      setHasVehicle(false);
-      setAssignDeposit('');
-      setAssignDepositDate('');
-      setAssignExpectedMoveOut('');
-      setAssignOccupancy('single');
-      setShowExtendedAssign(false);
-      invalidateCache('rooms'); invalidateCache('dashboard'); await loadData(true);
-      showToast(`${saved} assigned!`);
-    } catch (err: any) { setAssignError(typeof err.message === 'string' ? err.message : 'Failed to assign tenant.'); }
-    finally { setAssigning(false); }
-  };
+  // Assignment is handled by AddTenantSheet component
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -733,9 +646,7 @@ const Rooms: React.FC = () => {
                 <div key={floor} className="space-y-2.5">
                   {renderFloorHeader(floor, isCollapsed)}
                   <div
-                    className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
-                      isCollapsed ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr] opacity-100'
-                    }`}
+                    className={isCollapsed ? 'hidden' : 'block'}
                   >
                     <div className="overflow-hidden">
                       <RoomGrid
@@ -763,9 +674,7 @@ const Rooms: React.FC = () => {
                 <div key={floor} className="space-y-2.5">
                   {renderFloorHeader(floor, isCollapsed)}
                   <div
-                    className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
-                      isCollapsed ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr] opacity-100'
-                    }`}
+                    className={isCollapsed ? 'hidden' : 'block'}
                   >
                     <div className="overflow-hidden">
                       <div className="space-y-2.5">
@@ -804,7 +713,7 @@ const Rooms: React.FC = () => {
           addingBed={addingBedRoomId === detailRoom.id}
           deletingBedId={deletingBedId}
           onClose={() => setDetailRoom(null)}
-          onAssign={(room, bed) => { setAssignError(''); setAssignModal({ room, bed }); }}
+          onAssign={(room, bed) => { setAssignModal({ room, bed }); }}
           onNavigateTenant={(id) => navigate(`/tenants/${id}`)}
           onEditRoom={(room) => { setDetailRoom(null); setTimeout(() => openEditRoom(room), 50); }}
           onDeleteRoom={(room) => { setDetailRoom(null); setTimeout(() => openDeleteRoom(room), 50); }}
@@ -911,230 +820,19 @@ const Rooms: React.FC = () => {
         </Sheet>
       )}
 
-      {/* ╔═══════════════════════════════════════════════════════╗
-          ║  ASSIGN TENANT MODAL                                  ║
-          ╚═══════════════════════════════════════════════════════╝ */}
       {assignModal && (
-        <Sheet onClose={() => setAssignModal(null)}>
-          <SheetHeader
-            title="Assign Tenant"
-            subtitle={`Room ${assignModal.room.room_number} · ${assignModal.bed.bed_label || 'Bed'}`}
-            onClose={() => setAssignModal(null)}
-          />
-          {assignError && <ErrorBox msg={assignError} />}
-
-          <div className="bg-emerald-50 text-emerald-800 rounded-lg p-3.5 mb-4 text-xs font-semibold border border-emerald-200 shadow-sm text-center">
-            Adding tenant to <strong>Room {assignModal.room.room_number}</strong> · <strong>{assignModal.bed.bed_label || 'Bed'}</strong>
-          </div>
-          
-          <div className="flex items-center justify-between mb-4 bg-gray-50 p-3 rounded-lg border border-main-border relative">
-            <div className="text-xs text-black/60 font-medium">Quick Fill</div>
-            <div className="relative">
-              <button 
-                onClick={() => {
-                  setShowScanTooltip(true);
-                  setTimeout(() => setShowScanTooltip(false), 3000);
-                }}
-                className="bg-accent/10 text-accent border border-accent/20 px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 hover:bg-accent/20 transition-colors"
-              >
-                📷 Scan Aadhaar
-              </button>
-              
-              {showScanTooltip && (
-                <div className="absolute right-0 bottom-full mb-2.5 z-50 bg-main-text text-white text-[11px] font-semibold px-3 py-2 rounded-lg shadow-xl flex items-center gap-2 border border-white/10 whitespace-nowrap animate-fade-up">
-                  <span className="text-accent">✨</span>
-                  <span>We are working on this!</span>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); setShowScanTooltip(false); }}
-                    className="text-white/40 hover:text-white ml-1 text-[9px] font-bold p-1 rounded hover:bg-white/10"
-                  >
-                    ✕
-                  </button>
-                  <div className="absolute top-full right-4 -translate-y-[1px] w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-main-text"></div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-3.5 mb-5 max-h-[50vh] overflow-y-auto pr-1">
-            <div className="grid grid-cols-2 gap-2.5">
-              <Field label="Target Room" half>
-                <input type="text" value={`Room ${assignModal.room.room_number}`} readOnly disabled
-                  className="input-field bg-gray-50 border border-main-border text-black/40 cursor-not-allowed select-none font-semibold text-xs py-2" />
-              </Field>
-              <Field label="Target Bed" half>
-                <input type="text" value={assignModal.bed.bed_label || 'Bed'} readOnly disabled
-                  className="input-field bg-gray-50 border border-main-border text-black/40 cursor-not-allowed select-none font-semibold text-xs py-2" />
-              </Field>
-            </div>
-            <Field label="Full Name">
-              <input type="text" placeholder="e.g. Rahul Verma" value={assignName} autoFocus
-                onChange={(e) => setAssignName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleAssignSubmit()}
-                className={inputCls('focus:ring-emerald-500/20')} />
-            </Field>
-            <Field label="Phone Number">
-              <input type="tel" placeholder="10-digit mobile number" value={assignPhone}
-                onChange={(e) => setAssignPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                onKeyDown={(e) => e.key === 'Enter' && handleAssignSubmit()}
-                className={inputCls('focus:ring-emerald-500/20')} />
-            </Field>
-            <div className="grid grid-cols-2 gap-2.5">
-              <Field label="Monthly Rent (₹)" half>
-                <input type="number" placeholder="8500" value={assignRent}
-                  onChange={(e) => setAssignRent(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAssignSubmit()}
-                  className={inputCls('focus:ring-emerald-500/20')} />
-              </Field>
-              <Field label="Move-in Date" half>
-                <input type="date" value={assignDate}
-                  onChange={(e) => setAssignDate(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAssignSubmit()}
-                  className={inputCls('focus:ring-emerald-500/20')} />
-              </Field>
-            </div>
-
-            {/* Collapsible Additional Details */}
-            <div className="border border-main-border rounded-xl overflow-hidden mt-3">
-              <button
-                type="button"
-                onClick={() => setShowExtendedAssign(!showExtendedAssign)}
-                className="w-full bg-main-bg/50 px-4 py-3 flex items-center justify-between text-xs font-semibold text-main-text hover:bg-main-bg transition-colors tap-target"
-              >
-                <span>📋 Additional Details (Optional)</span>
-                <span className="text-black/60 font-bold">{showExtendedAssign ? '▲' : '▼'}</span>
-              </button>
-              {showExtendedAssign && (
-                <div className="p-4 bg-white border-t border-main-border space-y-5">
-                  
-                  {/* Category 1: KYC Documents */}
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-black/40 uppercase tracking-wider border-b border-main-border pb-1">🛡️ Identity Documents</h4>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Field label="Aadhaar Last 4" half>
-                        <input type="text" placeholder="1234" maxLength={4} value={assignAadhaar}
-                          onChange={(e) => setAssignAadhaar(e.target.value.replace(/\D/g, ''))}
-                          className={inputCls('focus:ring-emerald-500/20')} />
-                      </Field>
-                      <Field label="PAN Number" half>
-                        <input type="text" placeholder="ABCDE1234F" maxLength={10} value={assignPan}
-                          onChange={(e) => setAssignPan(e.target.value)}
-                          className={inputCls('focus:ring-emerald-500/20')} />
-                      </Field>
-                    </div>
-                  </div>
-
-                  {/* Category 2: Emergency Contact */}
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-black/40 uppercase tracking-wider border-b border-main-border pb-1">🚨 Emergency Contact</h4>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Field label="Contact Name" half>
-                        <input type="text" placeholder="Father/Mother" value={assignEmergencyName}
-                          onChange={(e) => setAssignEmergencyName(e.target.value)}
-                          className={inputCls('focus:ring-emerald-500/20')} />
-                      </Field>
-                      <Field label="Contact Phone" half>
-                        <input type="tel" placeholder="Contact number" maxLength={10} value={assignEmergencyPhone}
-                          onChange={(e) => setAssignEmergencyPhone(e.target.value.replace(/\D/g, ''))}
-                          className={inputCls('focus:ring-emerald-500/20')} />
-                      </Field>
-                    </div>
-                  </div>
-
-                  {/* Category 3: Work & Preferences */}
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-black/40 uppercase tracking-wider border-b border-main-border pb-1">💼 Profile & Preferences</h4>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Field label="Employer / College" half>
-                        <input type="text" placeholder="Company/University" value={assignEmployer}
-                          onChange={(e) => setAssignEmployer(e.target.value)}
-                          className={inputCls('focus:ring-emerald-500/20')} />
-                      </Field>
-                      <Field label="Hometown" half>
-                        <input type="text" placeholder="e.g. Delhi" value={assignHometown}
-                          onChange={(e) => setAssignHometown(e.target.value)}
-                          className={inputCls('focus:ring-emerald-500/20')} />
-                      </Field>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Field label="Food Preference" half>
-                        <select value={assignFood} onChange={(e: any) => setAssignFood(e.target.value)}
-                          className={inputCls('focus:ring-emerald-500/20') + " bg-white"}>
-                          <option value="veg">Veg</option>
-                          <option value="non_veg">Non-Veg</option>
-                          <option value="both">Both</option>
-                        </select>
-                      </Field>
-                      <Field label="Occupancy Type" half>
-                        <select value={assignOccupancy} onChange={(e: any) => setAssignOccupancy(e.target.value)}
-                          className={inputCls('focus:ring-emerald-500/20') + " bg-white"}>
-                          <option value="single">Single</option>
-                          <option value="double">Double</option>
-                          <option value="triple">Triple</option>
-                        </select>
-                      </Field>
-                    </div>
-                  </div>
-
-                  {/* Category 4: Vehicle Details */}
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-black/40 uppercase tracking-wider border-b border-main-border pb-1">🚗 Vehicle Details</h4>
-                    <div className="flex items-center justify-between p-3 bg-gray-50 border border-main-border rounded-lg text-xs font-semibold">
-                      <span className="text-main-text">Does this tenant have a vehicle?</span>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          checked={hasVehicle} 
-                          onChange={(e) => {
-                            setHasVehicle(e.target.checked);
-                            if (!e.target.checked) setAssignVehicle('');
-                          }}
-                          className="sr-only peer" 
-                        />
-                        <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-                      </label>
-                    </div>
-                    
-                    {hasVehicle && (
-                      <Field label="Vehicle Registration Number">
-                        <input 
-                          type="text" 
-                          placeholder="e.g. KA-01-XX-1234" 
-                          value={assignVehicle}
-                          onChange={(e) => setAssignVehicle(e.target.value.toUpperCase())}
-                          className={inputCls('focus:ring-emerald-500/20')} 
-                        />
-                      </Field>
-                    )}
-                  </div>
-
-                  {/* Category 5: Financials & Stay Duration */}
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-black/40 uppercase tracking-wider border-b border-main-border pb-1">💰 Financials & Stay</h4>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Field label="Security Deposit (₹)" half>
-                        <input type="number" placeholder="Rent deposit" value={assignDeposit}
-                          onChange={(e) => setAssignDeposit(e.target.value)}
-                          className={inputCls('focus:ring-emerald-500/20')} />
-                      </Field>
-                      <Field label="Deposit Pay Date" half>
-                        <input type="date" value={assignDepositDate}
-                          onChange={(e) => setAssignDepositDate(e.target.value)}
-                          className={inputCls('focus:ring-emerald-500/20')} />
-                      </Field>
-                    </div>
-                    <Field label="Expected Move-out Date">
-                      <input type="date" value={assignExpectedMoveOut}
-                        onChange={(e) => setAssignExpectedMoveOut(e.target.value)}
-                        className={inputCls('focus:ring-emerald-500/20')} />
-                    </Field>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-          <PrimaryBtn loading={assigning} loadingLabel="Assigning…" label="Assign Tenant" onClick={handleAssignSubmit} color="bg-emerald-600" />
-        </Sheet>
+        <AddTenantSheet 
+          onClose={() => setAssignModal(null)}
+          onSuccess={(name) => {
+            showToast(`${name} assigned!`);
+            setAssignModal(null);
+            invalidateCache('rooms');
+            invalidateCache('dashboard');
+            loadData(true);
+          }}
+          preselectedRoom={assignModal.room}
+          preselectedBed={assignModal.bed}
+        />
       )}
 
       {showBulkModal && (

@@ -66,7 +66,7 @@ const AdminDashboard: React.FC = () => {
         is_active: isActive,
         subscription_status: isActive ? "active" : "suspended"
       });
-      fetchPGs();
+      await fetchPGs();
     } catch (err: any) {
       console.error("Failed to update subscription:", err);
       alert("Failed to update subscription");
@@ -80,7 +80,7 @@ const AdminDashboard: React.FC = () => {
         is_active: pg.is_active,
         subscription_status: newStatus
       });
-      fetchPGs();
+      await fetchPGs();
     } catch (err: any) {
       console.error("Failed to toggle warn:", err);
       alert("Failed to toggle warn");
