@@ -17,6 +17,12 @@ const AdminDashboard: React.FC = () => {
   const [successCode, setSuccessCode] = useState('');
   const [copied, setCopied] = useState(false);
   const [selectedPG, setSelectedPG] = useState<PG | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const fetchPGs = async () => {
     setPgsLoading(true);
@@ -67,9 +73,10 @@ const AdminDashboard: React.FC = () => {
         subscription_status: isActive ? "active" : "suspended"
       });
       await fetchPGs();
+      showToast("Workspace active status updated successfully!");
     } catch (err: any) {
       console.error("Failed to update subscription:", err);
-      alert("Failed to update subscription");
+      showToast(err.message || "Failed to update subscription status.", "error");
     }
   };
 
@@ -81,9 +88,10 @@ const AdminDashboard: React.FC = () => {
         subscription_status: newStatus
       });
       await fetchPGs();
+      showToast("Workspace warn status updated successfully!");
     } catch (err: any) {
       console.error("Failed to toggle warn:", err);
-      alert("Failed to toggle warn");
+      showToast(err.message || "Failed to toggle warn status.", "error");
     }
   };
 
@@ -249,20 +257,19 @@ const AdminDashboard: React.FC = () => {
                         Expiring
                       </span>
                     )}
+                     <div className="flex-1"></div>
                     
-                    <div className="flex-1"></div>
-
                     <label className="flex items-center cursor-pointer mx-1" title="Toggle Warn Status">
                       <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider mr-1.5">Warn</span>
                       <div className="relative">
                         <input 
                           type="checkbox" 
                           className="sr-only" 
-                          checked={pg.subscription_status === 'warning'}
+                          checked={pg.subscription_status === "warning"}
                           onChange={(e) => handleToggleWarn(pg, e.target.checked)}
                         />
-                        <div className={`block w-7 h-3.5 rounded-full transition-colors ${pg.subscription_status === 'warning' ? 'bg-amber-500' : 'bg-gray-300'}`}></div>
-                        <div className={`dot absolute left-[2px] top-[2px] bg-white w-2.5 h-2.5 rounded-full transition-transform ${pg.subscription_status === 'warning' ? 'transform translate-x-3.5' : ''}`}></div>
+                        <div className={`block w-7 h-3.5 rounded-full transition-colors ${pg.subscription_status === "warning" ? 'bg-amber-500' : 'bg-gray-300'}`}></div>
+                        <div className={`dot absolute left-[2px] top-[2px] bg-white w-2.5 h-2.5 rounded-full transition-transform ${pg.subscription_status === "warning" ? 'transform translate-x-3.5' : ''}`}></div>
                       </div>
                     </label>
 
@@ -272,11 +279,11 @@ const AdminDashboard: React.FC = () => {
                         <input 
                           type="checkbox" 
                           className="sr-only" 
-                          checked={pg.is_active !== false}
+                          checked={pg.is_active === true}
                           onChange={(e) => handleToggleSubscription(pg.id, e.target.checked)}
                         />
-                        <div className={`block w-7 h-3.5 rounded-full transition-colors ${pg.is_active !== false ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                        <div className={`dot absolute left-[2px] top-[2px] bg-white w-2.5 h-2.5 rounded-full transition-transform ${pg.is_active !== false ? 'transform translate-x-3.5' : ''}`}></div>
+                        <div className={`block w-7 h-3.5 rounded-full transition-colors ${pg.is_active === true ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                        <div className={`dot absolute left-[2px] top-[2px] bg-white w-2.5 h-2.5 rounded-full transition-transform ${pg.is_active === true ? 'transform translate-x-3.5' : ''}`}></div>
                       </div>
                     </label>
                     
@@ -299,6 +306,14 @@ const AdminDashboard: React.FC = () => {
         onClose={() => setSelectedPG(null)}
         onUpdate={fetchPGs}
       />
+      
+      {toast && (
+        <div className={`fixed top-4 right-4 z-[200] px-4 py-3 rounded-lg font-medium text-sm flex items-center gap-2.5 text-white shadow-lg animate-fade-up ${
+          toast.type === 'error' ? 'bg-red-600' : 'bg-main-text'
+        }`}>
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 };

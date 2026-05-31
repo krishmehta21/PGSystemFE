@@ -39,6 +39,9 @@ const Tenants: React.FC = () => {
     if (searchParams.get('highlight_renewals') === 'true') {
       setHighlightRenewals(true);
     }
+    if (searchParams.get('action') === 'add') {
+      setShowAddTenant(true);
+    }
   }, [location.search]);
 
   // Calculate 10 months threshold

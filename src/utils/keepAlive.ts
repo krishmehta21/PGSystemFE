@@ -5,7 +5,7 @@ export function startKeepAlive() {
   const ping = async () => {
     if (document.visibilityState !== 'visible') return
     try {
-      await fetch(`${BACKEND_URL}/health`, { method: 'GET' })
+      await fetch(`${BACKEND_URL}/ping`, { method: 'GET' })
     } catch {
       // silently ignore — this is a background ping
     }
