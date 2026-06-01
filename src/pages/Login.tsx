@@ -85,6 +85,33 @@ const Login: React.FC = () => {
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
+
+          <div className="relative mt-6 mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-main-border"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-white px-2 text-text-secondary">Or</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              setEmail('demo@rentflow.in');
+              setPassword('Demo@1234');
+              // Using a slight delay to ensure state updates before form submission
+              setTimeout(() => {
+                const formEvent = { preventDefault: () => {} } as React.FormEvent;
+                handleLogin(formEvent);
+              }, 100);
+            }}
+            disabled={loading}
+            className="w-full mt-4 flex items-center justify-center px-4 py-2 border border-main-border rounded-md shadow-sm text-sm font-medium text-main-text bg-white hover:bg-main-bg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition-colors"
+          >
+            👀 Explore Demo Account
+          </button>
         </form>
         
         <p className="mt-8 text-center text-sm text-text-secondary">

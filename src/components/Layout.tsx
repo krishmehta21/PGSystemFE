@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, BedDouble, Users, Settings, LogOut, Menu, X, Wrench } from 'lucide-react';
+import { LayoutDashboard, BedDouble, Users, Settings, LogOut, Menu, X, Wrench, HelpCircle } from 'lucide-react';
 import { getMe, getMyPG } from '../api/endpoints';
 
 const Layout: React.FC = () => {
@@ -66,6 +66,12 @@ const Layout: React.FC = () => {
           <span className="font-serif text-lg text-main-text">{pgName}</span>
         </div>
         <div className="flex items-center gap-1">
+          <button aria-label="Help"
+            onClick={() => navigate('/help')}
+            className="p-2 text-main-text hover:bg-gray-50 rounded-md"
+          >
+            <HelpCircle size={20} />
+          </button>
           <button aria-label="Settings"
             onClick={() => navigate('/settings')}
             className="p-2 text-main-text hover:bg-gray-50 rounded-md"
@@ -178,6 +184,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ role, contextId, userEm
       <NavItem to="/rooms" icon={<BedDouble size={20} />} label="Rooms" />
       <NavItem to="/tenants" icon={<Users size={20} />} label="Tenants" />
       <NavItem to="/maintenance" icon={<Wrench size={20} />} label="Maintenance" />
+      <NavItem to="/help" icon={<HelpCircle size={20} />} label="Help" />
       <NavItem to="/settings" icon={<Settings size={20} />} label="Settings" />
     </nav>
 

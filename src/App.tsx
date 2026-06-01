@@ -18,6 +18,7 @@ const Register = React.lazy(() => import('./pages/Register'));
 const ActivationScreen = React.lazy(() => import('./pages/ActivationScreen'));
 const Maintenance = React.lazy(() => import('./pages/Maintenance'));
 const Paywall = React.lazy(() => import('./pages/Paywall'));
+const Help = React.lazy(() => import('./pages/Help'));
 
 const ProtectedRoute = ({ children, requireRole }: { children: React.ReactNode, requireRole?: 'admin' | 'owner' }) => {
   const token = localStorage.getItem('pg_token');
@@ -130,6 +131,7 @@ function App() {
             <Route path="tenant/:id" element={<TenantDetail />} />
             <Route path="maintenance" element={<Maintenance />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="help" element={<Help />} />
           </Route>
         </Routes>
       </Suspense>
