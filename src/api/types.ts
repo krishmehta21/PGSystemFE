@@ -30,6 +30,20 @@ export interface AdminRevenueResponse {
   pgs: AdminRevenuePG[];
 }
 
+export interface AdminActivityPG {
+  pg_id: string;
+  pg_name: string;
+  last_seen: string | null;
+  logins_last_7_days: number;
+  dashboard_views_last_7_days: number;
+  total_events_last_30_days: number;
+  is_active: boolean;
+}
+
+export interface AdminActivityResponse {
+  pgs: AdminActivityPG[];
+}
+
 export interface User {
   id: string;
   email: string;

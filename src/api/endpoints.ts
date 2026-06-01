@@ -93,8 +93,9 @@ export const updatePGSubscription = (id: string, data: {
   subscription_notes?: string
 }) => client.patch<PG>(`/api/v1/pgs/${id}/subscription`, data);
 
-import type { AdminRevenueResponse } from "./types";
+import type { AdminRevenueResponse, AdminActivityResponse } from "./types";
 export const getAdminRevenue = () => client.get<AdminRevenueResponse>("/api/v1/pgs/admin/revenue");
+export const getAdminActivity = () => client.get<AdminActivityResponse>("/api/v1/admin/activity");
 
 export const getDashboardForAdmin = (pgId: string) => client.get<DashboardStats>(`/api/v1/dashboard?pg_id=${pgId}`);
 

@@ -1,25 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { getAdminRevenue } from '../api/endpoints';
+import { getAdminRevenue, getAdminActivity } from '../api/endpoints';
 import Loader from '../components/Loader';
-import { IndianRupee, Building2, AlertTriangle, XCircle, TrendingUp } from 'lucide-react';
-import type { AdminRevenueResponse } from '../api/types';
+import { IndianRupee, Building2, AlertTriangle, XCircle, TrendingUp, Activity } from 'lucide-react';
+import type { AdminRevenueResponse, AdminActivityResponse } from '../api/types';
 
 const AdminRevenue: React.FC = () => {
   const [data, setData] = useState<AdminRevenueResponse | null>(null);
+  const [activityData, setActivityData] = useState<AdminActivityResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchRevenue = async () => {
+    const fetchData = async () => {
       try {
-        const res = await getAdminRevenue();
-        setData(res);
+        const [revenueRes, activityRes] = await Promise.all([
+          getAdminRevenue(),
+          getAdminActivity().catch(() => null)
+        ]);
+        setData(revenueRes);
+        setActivityData(activityRes);
       } catch (err) {
-        console.error("Failed to fetch revenue stats", err);
+        console.error("Failed to fetch admin data", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchRevenue();
+    fetchData();
   }, []);
 
   if (loading) {
@@ -61,6 +66,32 @@ const AdminRevenue: React.FC = () => {
     if (diffDays < 0) return 'expired';
     if (diffDays <= 7) return 'expiring_soon';
     return 'active';
+  };
+
+  const getRelativeTime = (dateString: string | null) => {
+    if (!dateString) return "Never";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+    const diffMins = Math.floor(diffTime / (1000 * 60));
+    
+    if (diffDays > 0) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    if (diffHours > 0) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffMins > 0) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+    return "Just now";
+  };
+
+  const getActivityColor = (dateString: string | null) => {
+    if (!dateString) return "bg-red-500";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays <= 3) return "bg-green-500";
+    if (diffDays <= 7) return "bg-amber-500";
+    return "bg-red-500";
   };
 
   return (
@@ -137,6 +168,7 @@ const AdminRevenue: React.FC = () => {
                 <th className="px-6 py-4">PG Name</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Price / Mo</th>
+                <th className="px-6 py-4">Activity</th>
                 <th className="px-6 py-4">Start Date</th>
                 <th className="px-6 py-4">End Date</th>
               </tr>
@@ -172,6 +204,26 @@ const AdminRevenue: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 font-mono font-medium">
                         {formatCurrency(pg.monthly_price)}
+                      </td>
+                      <td className="px-6 py-4">
+                        {(() => {
+                          const activity = activityData?.pgs.find(a => a.pg_name === pg.pg_name);
+                          if (!activity) return <span className="text-black/40 text-xs">No data</span>;
+                          return (
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-2 h-2 rounded-full ${getActivityColor(activity.last_seen)}`} />
+                                <span className="text-xs font-medium text-main-text">
+                                  {getRelativeTime(activity.last_seen)}
+                                </span>
+                              </div>
+                              <div className="text-[10px] text-black/50 ml-4 flex items-center gap-1">
+                                <Activity size={10} />
+                                {activity.logins_last_7_days} logins / 7d
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="px-6 py-4 text-black/60">
                         {pg.subscription_start || '—'}
