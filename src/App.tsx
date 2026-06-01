@@ -19,6 +19,7 @@ const ActivationScreen = React.lazy(() => import('./pages/ActivationScreen'));
 const Maintenance = React.lazy(() => import('./pages/Maintenance'));
 const Paywall = React.lazy(() => import('./pages/Paywall'));
 const Help = React.lazy(() => import('./pages/Help'));
+const AuthCallback = React.lazy(() => import('./pages/AuthCallback'));
 
 const ProtectedRoute = ({ children, requireRole }: { children: React.ReactNode, requireRole?: 'admin' | 'owner' }) => {
   const token = localStorage.getItem('pg_token');
@@ -100,7 +101,8 @@ function App() {
       }>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/register" element={<Suspense fallback={<Loader />}><Register /></Suspense>} />
+          <Route path="/auth/callback" element={<Suspense fallback={<Loader />}><AuthCallback /></Suspense>} />
           
           <Route path="/admin" element={
             <ProtectedRoute requireRole="admin">
